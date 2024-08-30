@@ -5,7 +5,11 @@ import { ChangeEvent, FC, useEffect, useRef, useState } from "react";
 import { Button } from "../../../../common/Button/Button";
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { selectDept, selectDeptResponse, selectPositionResponse } from "../EmpMgtSearch/EmpMgtSearch";
-import { modalState1 } from "../EmpMgtSalaryModal/EmpMgtSalaryModal";
+import { EmpMgtSalaryModal, modalState1 } from "../EmpMgtSalaryModal/EmpMgtSalaryModal";
+
+export interface IEmpSaveResponse {
+  result : string;
+}
 
 export interface IUserInfoModalProps {
     onPostSuccess : () => void;
@@ -106,7 +110,7 @@ export const EmpMgtModal:FC<IUserInfoModalProps> =({onPostSuccess, loginId, setL
             selectPosition();
             selectJob();
             selectAuth();
-
+            
             const script = document.createElement("script");
             script.src = "//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js";
             script.async = true;
@@ -121,6 +125,7 @@ export const EmpMgtModal:FC<IUserInfoModalProps> =({onPostSuccess, loginId, setL
     useEffect(()=>{
         if(modal && loginId)
             searchDetail(loginId);
+       
     },[modal, loginId]);
 
     const handleComplete = (data: { address: string; addressType: string; bname: string; buildingName: string; zonecode: string; }) => {
@@ -335,9 +340,51 @@ export const EmpMgtModal:FC<IUserInfoModalProps> =({onPostSuccess, loginId, setL
       }
 
       const salary =() =>{
-        setModal1(!modal1);
+        setModal1(true);
         console.log("그냥 버튼을 넣을까? ")
       }
+       //   let param = new URLSearchParams();
+        
+      //   if (userInfo) {
+      //     // Add each property of userInfo to URLSearchParams
+      //     Object.keys(userInfo).forEach((key) => {
+      //         const value = userInfo[key as keyof IUserInfoDetail];
+      //         if (value !== undefined && value !== null) {
+      //             param.append(key, value.toString());
+      //         }
+      //     });
+      // }
+
+      const saveEmp = () => {
+        const fileForm = new FormData();
+    
+        // 파일 데이터가 있는 경우 추가
+        if (fileData) {
+            fileForm.append('file', fileData);
+        }
+    
+        // userInfo 객체를 JSON으로 변환하여 추가
+        fileForm.append('text', new Blob([JSON.stringify(userInfo)], { type: 'application/json' }));
+    
+        const postAction: AxiosRequestConfig = {
+            method: 'POST',
+            url: '/employee/empSave.do',
+            data: fileForm,
+            // Content-Type은 설정하지 않습니다.
+            // headers: {
+            //     'Content-Type': 'application/json' // 이 라인은 제거해야 합니다.
+            // }
+        };
+    
+        axios(postAction).then((res: AxiosResponse<IEmpSaveResponse>) => {
+            alert(res.data.result);
+            onPostSuccess();
+        }).catch((error) => {
+            console.error('Error saving employee:', error);
+            // 에러 처리 로직 추가 가능
+        });
+    };
+    
     return (
         <>
         <EmpMgtModalStyled isOpen={modal} ariaHideApp={false} onAfterClose={cleanUp}>
@@ -428,10 +475,10 @@ export const EmpMgtModal:FC<IUserInfoModalProps> =({onPostSuccess, loginId, setL
           <td colSpan={3}>
             <input type="text" id="birthday" name="birthday" className="inputTxt" placeholder="YYYY-MM-DD" required 
              onChange={(e)=>{
-                setUserInfo({...userInfo, email
+                setUserInfo({...userInfo, birthday
                     : e.target.value})
             }}
-            defaultValue={userInfo?.email
+            defaultValue={userInfo?.birthday
                 || ''}
             />
           </td>
@@ -452,9 +499,9 @@ export const EmpMgtModal:FC<IUserInfoModalProps> =({onPostSuccess, loginId, setL
           <td colSpan={4}>
             <input type="text" id="email" name="email" className="inputTxt valid" 
              onChange={(e)=>{
-                setUserInfo({...userInfo, loginId : e.target.value})
+                setUserInfo({...userInfo, email : e.target.value})
             }}
-            defaultValue={userInfo?.loginId || ''}
+            defaultValue={userInfo?.email || ''}
             />
           </td>
           <th colSpan={2}>
@@ -656,7 +703,9 @@ export const EmpMgtModal:FC<IUserInfoModalProps> =({onPostSuccess, loginId, setL
           </td>
           <th colSpan={2}>퇴직금</th>
           <td colSpan={3}>
-            <input type="text" id="pens" name="pens" className="inputTxt" placeholder="숫자만 입력하세요." />
+            <input type="text" id="pens" name="pens" className="inputTxt" placeholder="숫자만 입력하세요."
+            onChange={()=>setUserInfo({...userInfo, })}
+            />
           </td>
         </tr>
         <tr>
@@ -673,7 +722,7 @@ export const EmpMgtModal:FC<IUserInfoModalProps> =({onPostSuccess, loginId, setL
           </th>
           <td colSpan={3}>
             <select id="userType" style={{ width: '200px' }} className="valid">
-            <option >선택</option>
+            <option onChange={()=>setUserInfo({...userInfo, })}>선택</option>
             {auth && auth?.length > 0 ? (
                     auth.map((a,i)=>{
                         return (
@@ -692,9 +741,15 @@ export const EmpMgtModal:FC<IUserInfoModalProps> =({onPostSuccess, loginId, setL
         </tr>
       </tbody>
                 </EmpMgtTableStyled>
+                {loginId ? 
+                <Button>수정</Button>
+                : 
+                <Button onClick={saveEmp}>저장</Button>
+                }
                 <Button onClick={()=>setModal(!modal)}>닫기</Button>
             </div>
         </EmpMgtModalStyled>
+        <EmpMgtSalaryModal></EmpMgtSalaryModal>
         </>
     )
 }

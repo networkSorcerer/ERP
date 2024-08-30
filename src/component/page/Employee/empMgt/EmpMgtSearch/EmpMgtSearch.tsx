@@ -74,12 +74,12 @@ export const EmpMgtSearch = ()=>{
 
     const worker = () =>{
         setInput({ ...input, searchStatus: 'W' });
-        setSearchKeyword(input);
+      
     }
     
     const retire = () =>{
         setInput({ ...input, searchStatus: 'R' })
-        setSearchKeyword(input);
+        
     }
     return (
         <>

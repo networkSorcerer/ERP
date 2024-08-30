@@ -1,13 +1,13 @@
 import { useContext, useEffect, useState } from "react"
 import { EmpMgtContext } from "../../../../../pages/Employee/empMgt/EmpMgt"
-import { useRecoilState } from "recoil";
+import { atom, useRecoilState } from "recoil";
 import { modalState } from "../../../../../stores/modalState";
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { Button } from "../../../../common/Button/Button";
 import { StyledTable, StyledTd, StyledTh } from "../../../../common/styled/StyledTable";
 import { PageNavigate } from "../../../../common/pageNavigation/PageNavigate";
 import { EmpMgtModal } from "../empMgtModal/EmpMgtModal";
-import { modalState1 } from "../EmpMgtSalaryModal/EmpMgtSalaryModal";
+import { EmpMgtSalaryModal, modalState1 } from "../EmpMgtSalaryModal/EmpMgtSalaryModal";
 
 export interface IUserInfo {
     loginId : string;
@@ -36,6 +36,11 @@ export interface IUserInfoResponse {
     empMgtCnt : number;
 }
 
+export const modalState2= atom<boolean>({
+    key : 'modalState2',
+    default : false
+})
+
 export const EmpMgtMain =()=>{
     const {searchkeyword} = useContext(EmpMgtContext);
     const [totalCnt, setTotalCnt] = useState<number>(0);
@@ -43,8 +48,8 @@ export const EmpMgtMain =()=>{
     const [modal, setModal] = useRecoilState(modalState);
     const [userList, setUserList] = useState<IUserInfo[]>();
     const [loginId , setLoginId] = useState<string>('');
-    const [modal1, setModal1] = useRecoilState(modalState1);
-    
+    const [modal2, setModal2] = useRecoilState(modalState2);
+
     useEffect(()=>{
         searchUser();
     },[searchkeyword]);
@@ -129,7 +134,7 @@ export const EmpMgtMain =()=>{
                                     (<StyledTd>N</StyledTd>)}
                                     <StyledTd>{a.leaveDate}</StyledTd>
                                     <StyledTd>
-                                        <Button onClick={()=>setModal1(!modal1)}>퇴직처리</Button>
+                                        <Button onClick={()=>setModal2(!modal2)}>퇴직처리</Button>
                                     </StyledTd>
                                 </tr>
                             )
@@ -148,6 +153,7 @@ export const EmpMgtMain =()=>{
             activePage={currentPage as number}
         ></PageNavigate>
         <EmpMgtModal onPostSuccess={onPostSuccess} loginId={loginId} setLoginId={setLoginId}></EmpMgtModal>
+        
         </>
     )
 }
